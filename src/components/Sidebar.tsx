@@ -1,9 +1,16 @@
+"use client";
+
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 export function Sidebar() {
+  const pathname = usePathname();
+
   const menuItems = [
-    { label: "Dashboard / ภาพรวมสต็อก", active: true },
-    { label: "บันทึกรับ-จ่าย", active: false },
-    { label: "ทะเบียนคุมวัสดุคงเหลือ", active: false },
-    { label: "รายงานแบบ อปท.-วส.", active: false },
+    { label: "Dashboard / ภาพรวมสต็อก", href: "/" },
+    { label: "ทะเบียนคุมวัสดุคงเหลือ", href: "/materials" },
+    { label: "รายงานแบบ อปท.-วส.", href: "/reports" },
   ];
 
   return (
@@ -20,20 +27,22 @@ export function Sidebar() {
         </div>
 
         <nav className="space-y-1.5 text-sm font-medium">
-          {menuItems.map((item, idx) => (
-            <a
-              key={idx}
-              href="#"
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
-                item.active
-                  ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                  : "text-slate-300 hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <span>{item.label}</span>
-              {/* If you wanted badges, add them back here */}
-            </a>
-          ))}
+          {menuItems.map((item, idx) => {
+            const active = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+            return (
+              <Link
+                key={idx}
+                href={item.href}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${
+                  active
+                    ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
