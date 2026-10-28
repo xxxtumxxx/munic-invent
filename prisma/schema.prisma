@@ -11,202 +11,72 @@ datasource db {
 // ENUMS
 // -------------------------------------------------------------
 
-enum Role {
-  USER        // เจ้าหน้าที่ทั่วไป (ขอเบิกพัสดุ ติดตามสถานะ)
-  ADMIN       // เจ้าหน้าที่พัสดุ / แอดมินระบบ (จัดการสต็อก นำเข้า-จ่ายออก)
-  EXECUTIVE   // ผู้บริหาร / หัวหน้ากอง (อนุมัติใบเบิก ตรวจสอบรายงาน)
-}
-
-enum ItemStatus {
-  AVAILABLE     // มีในคลัง พร้อมเบิก
-  LOW_STOCK     // สินค้าใกล้หมด (ต่ำกว่าจุดสั่งซื้อ)
-  OUT_OF_STOCK  // สินค้าหมดคลัง
-  DAMAGED       // ชำรุด รอจำหน่าย/ส่งซ่อม
-  DISCONTINUED  // ยกเลิกใช้งาน
-}
-
-enum RequisitionStatus {
-  PENDING     // รอการพิจารณาอนุมัติ
-  APPROVED    // ได้รับการอนุมัติแล้ว รอจ่ายพัสดุ
-  REJECTED    // ไม่อนุมัติคำขอ
-  DISPATCHED  // จ่ายพัสดุเรียบร้อยแล้ว
-  CANCELLED   // ยกเลิกโดยผู้ขอเบิก
-}
-
-enum UrgencyLevel {
-  NORMAL      // ปกติ (1-3 วันทำการ)
-  URGENT      // ด่วน (ภายใน 24 ชม.)
-  IMMEDIATE   // ด่วนที่สุด (ใช้งานทันที)
-}
-
 enum TransactionType {
-  STOCK_IN    // รับเข้าพัสดุใหม่ (จัดซื้อ/รับบริจาค)
-  STOCK_OUT   // จ่ายพัสดุตามใบเบิก
-  ADJUSTMENT  // ปรับปรุงยอดคงคลัง (ตรวจนับ/แก้ไข)
-  RETURN      // ส่งคืนพัสดุเข้าคลัง
+  RECEIVE   // รับเข้า
+  ISSUE     // จ่ายออก
 }
 
 // -------------------------------------------------------------
 // MODELS
 // -------------------------------------------------------------
 
-model User {
-  id                   String        @id @default(cuid())
-  name                 String
-  email                String        @unique
-  password             String
-  role                 Role          @default(USER)
-  department           String?       // กอง/สำนัก เช่น สำนักปลัด, กองคลัง, กองช่าง
-  position             String?       // ตำแหน่งงาน
-  phone                String?
-  avatar               String?
-  isActive             Boolean       @default(true)
-  
-  requisitions         Requisition[] @relation("UserRequisitions")
-  approvedRequisitions Requisition[] @relation("ExecutiveApprovals")
-  transactions         Transaction[]
+model OrganizationInfo {
+  id          String   @id @default(cuid())
+  officeName  String   // ชื่อส่วนราชการ
+  department  String   // หน่วยงาน
+  district    String   // อำเภอ
+  province    String   // จังหวัด
+  fiscalYear  String   // ปีงบประมาณ
+  coordinator String?  // ชื่อผู้ประสานงาน/เจ้าหน้าที่พัสดุ
+  updatedAt   DateTime @updatedAt
 
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-
-  @@map("users")
+  @@map("organization_info")
 }
 
 model Category {
-  id          String   @id @default(cuid())
-  code        String?  @unique // รหัสหมวดหมู่ เช่น CAT-OFF, CAT-COM
-  name        String   @unique // ชื่อหมวดหมู่ เช่น วัสดุสำนักงาน, วัสดุคอมพิวเตอร์
-  description String?
+  id          String           @id @default(cuid())
+  name        String           @unique // เช่น วัสดุสำนักงาน, วัสดุไฟฟ้าและวิทยุ, วัสดุงานบ้านงานครัว, วัสดุก่อสร้าง, วัสดุยานพาหนะ
   
-  items       Item[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  items       ConsumableItem[]
 
   @@map("categories")
 }
 
-model Item {
-  id               String            @id @default(cuid())
-  code             String            @unique // รหัสพัสดุ/ครุภัณฑ์ หรือ Barcode
-  name             String            // ชื่อพัสดุ
-  description      String?           // รายละเอียด/สเปก/ยี่ห้อ
-  unit             String            // หน่วยนับ เช่น ชิ้น, เล่ม, รีม, กล่อง
-  imageUrl         String?           // รูปภาพหน้าปกหลัก
-  quantity         Int               @default(0) // ยอดคงเหลือปัจจุบัน
-  minQuantity      Int               @default(5) // ระดับแจ้งเตือนพัสดุใกล้หมด
-  price            Decimal?          @db.Decimal(12, 2) // ราคาต่อหน่วย
-  location         String?           // ตำแหน่งที่จัดเก็บในคลัง
-  status           ItemStatus        @default(AVAILABLE)
-
-  categoryId       String
-  category         Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  images           ItemImage[]
-  requisitionItems RequisitionItem[]
-  transactions     Transaction[]
-
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-
-  @@index([categoryId])
-  @@index([status])
-  @@index([code])
-  @@map("items")
-}
-
-model ItemImage {
-  id        String   @id @default(cuid())
-  url       String   // ลิงก์รูปภาพ
-  caption   String?  // คำอธิบายรูปภาพ
-  isPrimary Boolean  @default(false)
+model ConsumableItem {
+  id             String                  @id @default(cuid())
+  categoryId     String
+  category       Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   
-  itemId    String
-  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@index([itemId])
-  @@map("item_images")
-}
-
-
-model Requisition {
-  id            String            @id @default(cuid())
-  requisitionNo String            @unique // เลขที่ใบเบิก เช่น REQ-2567-0001
-  department    String            // หน่วยงานที่ขอเบิก
-  purpose       String            // วัตถุประสงค์ในการขอเบิก / โครงการ
-  urgency       UrgencyLevel      @default(NORMAL)
-  status        RequisitionStatus @default(PENDING)
-  notes         String?           // หมายเหตุเพิ่มเติม
+  name           String                  // ชื่อวัสดุ
+  specification  String?                 // ขนาด/ลักษณะ/รายละเอียด
+  unit           String                  // หน่วยนับ เช่น ชิ้น, เล่ม, รีม, กล่อง
+  unitPrice      Decimal?                @db.Decimal(12, 2) // ราคาต่อหน่วย
+  balanceForward Int                     @default(0) // ยอดยกมา (จำนวนเริ่มต้น)
   
-  // ผู้ขอเบิก
-  userId        String
-  user          User              @relation("UserRequisitions", fields: [userId], references: [id], onDelete: Restrict)
+  transactions   ConsumableTransaction[]
 
-  // ผู้อนุมัติ (ผู้บริหาร / หัวหน้ากอง)
-  approverId    String?
-  approver      User?             @relation("ExecutiveApprovals", fields: [approverId], references: [id], onDelete: SetNull)
-  approvedAt    DateTime?
-  rejectReason  String?           // บันทึกเหตุผลกรณีไม่อนุมัติ
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
 
-  // Relations
-  items         RequisitionItem[]
-  transactions  Transaction[]
-
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-
-  @@index([userId])
-  @@index([approverId])
-  @@index([status])
-  @@index([requisitionNo])
-  @@map("requisitions")
+  @@map("consumable_items")
 }
 
-model RequisitionItem {
-  id                String      @id @default(cuid())
-  quantityRequested Int         // จำนวนที่ขอเบิก
-  quantityApproved  Int?        // จำนวนที่ได้รับอนุมัติให้เบิกจริง
-  remark            String?     // หมายเหตุเฉพาะรายการ
-
-  requisitionId     String
-  requisition       Requisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
-
-  itemId            String
-  item              Item        @relation(fields: [itemId], references: [id], onDelete: Restrict)
-
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-
-  @@unique([requisitionId, itemId])
-  @@index([requisitionId])
-  @@index([itemId])
-  @@map("requisition_items")
-}
-
-model Transaction {
-  id            String          @id @default(cuid())
-  transactionNo String          @unique // เลขที่บันทึกรายการ เช่น TXN-2567-0001
-  type          TransactionType // ประเภทรายการ (รับเข้า/เบิกออก/ปรับยอด/ส่งคืน)
-  quantity      Int             // จำนวนที่มีการเปลี่ยนแปลง (+ หรือ -)
-  balanceAfter  Int             // ยอดคงเหลือในสต็อกหลังทำรายการ
-  note          String?         // หมายเหตุ เช่น ใบสั่งซื้อ PO หรือระบุเหตุผลการตรวจนับ
-
-  itemId        String
-  item          Item            @relation(fields: [itemId], references: [id], onDelete: Restrict)
-
-  userId        String          // เจ้าหน้าที่ผู้ทำรายการ
-  user          User            @relation(fields: [userId], references: [id], onDelete: Restrict)
-
-  requisitionId String?         // ใบเบิกที่เกี่ยวข้อง (กรณี STOCK_OUT)
-  requisition   Requisition?    @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
-
-  createdAt     DateTime        @default(now())
+model ConsumableTransaction {
+  id                  String          @id @default(cuid())
+  itemId              String
+  item                ConsumableItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  type                TransactionType // RECEIVE | ISSUE
+  date                DateTime        @default(now()) // วันเดือนปี ที่รับ/จ่าย
+  quantity            Int             // จำนวนรับ/จ่าย
+  sourceOrDestination String?         // รับจาก (ชื่อร้าน/หน่วยงาน) หรือ จ่ายให้ (ชื่อผู้เบิก/หน่วยงาน)
+  documentNo          String?         // เลขที่เอกสาร/ใบสั่งซื้อ/ใบเบิก
+  notes               String?         // หมายเหตุ
+  
+  createdAt           DateTime        @default(now())
 
   @@index([itemId])
-  @@index([userId])
-  @@index([requisitionId])
   @@index([type])
-  @@index([createdAt])
-  @@map("transactions")
+  @@index([date])
+  @@map("consumable_transactions")
 }

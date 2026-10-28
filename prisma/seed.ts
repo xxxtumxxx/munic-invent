@@ -1,50 +1,19 @@
-import { PrismaClient, Role, ItemStatus, UrgencyLevel, RequisitionStatus, TransactionType } from "@prisma/client";
+import { PrismaClient, TransactionType } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding municipal inventory database (Phase 1)...");
+  console.log("Seeding Consumables Inventory database...");
 
-  // 1. Create Users with 3 Roles: ADMIN, EXECUTIVE, USER
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@munic.local" },
-    update: {},
-    create: {
-      email: "admin@munic.local",
-      name: "อนุชา ดวงดี (เจ้าหน้าที่พัสดุ)",
-      password: "hashed_password_demo",
-      role: Role.ADMIN,
-      department: "กองคลัง - งานพัสดุ",
-      position: "นักวิชาการพัสดุปฏิบัติการ",
-      phone: "081-234-5678",
-    },
-  });
-
-  const executive = await prisma.user.upsert({
-    where: { email: "exec@munic.local" },
-    update: {},
-    create: {
-      email: "exec@munic.local",
-      name: "ดร.ไพศาล เกียรติภูมิ (ปลัดเทศบาล)",
-      password: "hashed_password_demo",
-      role: Role.EXECUTIVE,
-      department: "สำนักปลัดเทศบาล",
-      position: "ปลัดเทศบาล",
-      phone: "089-876-5432",
-    },
-  });
-
-  const user = await prisma.user.upsert({
-    where: { email: "user@munic.local" },
-    update: {},
-    create: {
-      email: "user@munic.local",
-      name: "สมชาย รักษาการ (เจ้าหน้าที่ธุรการ)",
-      password: "hashed_password_demo",
-      role: Role.USER,
-      department: "กองช่าง",
-      position: "เจ้าพนักงานธุรการชำนาญงาน",
-      phone: "082-345-6789",
+  // 1. Create OrganizationInfo
+  await prisma.organizationInfo.create({
+    data: {
+      officeName: "เทศบาลตำบลตัวอย่าง",
+      department: "กองคลัง",
+      district: "เมือง",
+      province: "กรุงเทพมหานคร",
+      fiscalYear: "2567",
+      coordinator: "สมชาย รักษาการ (เจ้าหน้าที่พัสดุ)",
     },
   });
 
@@ -52,61 +21,93 @@ async function main() {
   const catOffice = await prisma.category.upsert({
     where: { name: "วัสดุสำนักงาน" },
     update: {},
-    create: {
-      code: "CAT-OFF",
-      name: "วัสดุสำนักงาน",
-      description: "กระดาษ แฟ้ม ปากกา และอุปกรณ์เครื่องเขียน",
-    },
+    create: { name: "วัสดุสำนักงาน" },
   });
 
-  const catCom = await prisma.category.upsert({
-    where: { name: "วัสดุคอมพิวเตอร์" },
+  const catElectric = await prisma.category.upsert({
+    where: { name: "วัสดุไฟฟ้าและวิทยุ" },
     update: {},
-    create: {
-      code: "CAT-COM",
-      name: "วัสดุคอมพิวเตอร์",
-      description: "ตลับหมึก แฟลชไดรฟ์ สายเชื่อมต่อ และอุปกรณ์เสริม",
-    },
+    create: { name: "วัสดุไฟฟ้าและวิทยุ" },
   });
 
-  // 3. Create Sample Items with Images
-  const itemPaper = await prisma.item.upsert({
-    where: { code: "MAT-OFF-001" },
+  const catHouse = await prisma.category.upsert({
+    where: { name: "วัสดุงานบ้านงานครัว" },
     update: {},
-    create: {
-      code: "MAT-OFF-001",
-      name: "กระดาษถ่ายเอกสาร A4 (80 แกรม) Double A",
-      description: "กระดาษพิมพ์เอกสารคุณภาพสูง ขนาด A4 บรรจุ 500 แผ่น/รีม",
-      unit: "รีม",
-      quantity: 50,
-      minQuantity: 15,
-      price: 135.00,
-      location: "คลังกลาง ชั้น 1 ล็อก A-01",
-      status: ItemStatus.AVAILABLE,
+    create: { name: "วัสดุงานบ้านงานครัว" },
+  });
+
+  // 3. Create Consumable Items
+  const itemPaper = await prisma.consumableItem.create({
+    data: {
       categoryId: catOffice.id,
-      imageUrl: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=500&auto=format",
+      name: "กระดาษถ่ายเอกสาร A4 (80 แกรม)",
+      specification: "Double A บรรจุ 500 แผ่น",
+      unit: "รีม",
+      unitPrice: 135.00,
+      balanceForward: 50,
     },
   });
 
-  const itemToner = await prisma.item.upsert({
-    where: { code: "MAT-COM-001" },
-    update: {},
-    create: {
-      code: "MAT-COM-001",
-      name: "ตลับหมึกเลเซอร์ HP 85A (CE285A) สีดำ",
-      description: "ตลับหมึกแท้สำหรับเครื่องพิมพ์ HP LaserJet P1102 / M1132 / M1212",
-      unit: "ตลับ",
-      quantity: 3,
-      minQuantity: 5,
-      price: 2450.00,
-      location: "คลังกลาง ชั้น 2 ตู้ B-03",
-      status: ItemStatus.LOW_STOCK,
-      categoryId: catCom.id,
-      imageUrl: "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=500&auto=format",
+  const itemPen = await prisma.consumableItem.create({
+    data: {
+      categoryId: catOffice.id,
+      name: "ปากกาลูกลื่น 0.5 มม.",
+      specification: "สีน้ำเงิน",
+      unit: "ด้าม",
+      unitPrice: 5.50,
+      balanceForward: 100,
     },
   });
 
-  console.log("Database seeded successfully with Users, Categories, and Items!");
+  const itemBulb = await prisma.consumableItem.create({
+    data: {
+      categoryId: catElectric.id,
+      name: "หลอดไฟ LED 18W",
+      specification: "แสงขาง (Daylight)",
+      unit: "หลอด",
+      unitPrice: 95.00,
+      balanceForward: 20,
+    },
+  });
+
+  // 4. Create Transactions
+  await prisma.consumableTransaction.create({
+    data: {
+      itemId: itemPaper.id,
+      type: TransactionType.RECEIVE,
+      date: new Date("2024-10-01T09:00:00Z"),
+      quantity: 50,
+      sourceOrDestination: "ร้านเครื่องเขียนพัฒนา",
+      documentNo: "PO-2567-001",
+      notes: "จัดซื้อประจำเดือนตุลาคม",
+    },
+  });
+
+  await prisma.consumableTransaction.create({
+    data: {
+      itemId: itemPaper.id,
+      type: TransactionType.ISSUE,
+      date: new Date("2024-10-05T10:30:00Z"),
+      quantity: 10,
+      sourceOrDestination: "สำนักปลัด (นาย ก.)",
+      documentNo: "REQ-2567-001",
+      notes: "ใช้งานทั่วไป",
+    },
+  });
+
+  await prisma.consumableTransaction.create({
+    data: {
+      itemId: itemBulb.id,
+      type: TransactionType.ISSUE,
+      date: new Date("2024-10-10T14:15:00Z"),
+      quantity: 5,
+      sourceOrDestination: "กองช่าง (นาย ข.)",
+      documentNo: "REQ-2567-002",
+      notes: "ซ่อมแซมอาคารศูนย์เด็กเล็ก",
+    },
+  });
+
+  console.log("Database seeded successfully with Organization, Categories, Items, and Transactions!");
 }
 
 main()

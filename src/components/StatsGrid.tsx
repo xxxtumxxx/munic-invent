@@ -1,9 +1,9 @@
 export function StatsGrid() {
   const stats = [
-    { title: "พัสดุและครุภัณฑ์ทั้งหมด", value: "1,428", unit: "รายการ", note: "+12 สัปดาห์นี้", color: "from-blue-500/20 to-cyan-500/10", border: "border-blue-500/30" },
-    { title: "พัสดุใกล้หมดสต็อก", value: "9", unit: "รายการ", note: "ต่ำกว่าเกณฑ์ขั้นต่ำ", color: "from-amber-500/20 to-orange-500/10", border: "border-amber-500/30" },
-    { title: "คำขอเบิกรออนุมัติ", value: "14", unit: "คำขอ", note: "รอผู้บริหารพิจารณา", color: "from-purple-500/20 to-pink-500/10", border: "border-purple-500/30" },
-    { title: "เบิกจ่ายสำเร็จเดือนนี้", value: "86", unit: "รายการ", note: "มูลค่า ฿142,500", color: "from-emerald-500/20 to-teal-500/10", border: "border-emerald-500/30" },
+    { title: "วัสดุทั้งหมด", value: "34", unit: "รายการ", note: "จัดหมวดหมู่แล้ว", color: "from-blue-500/20 to-cyan-500/10", border: "border-blue-500/30" },
+    { title: "รายการรับเข้าเดือนนี้", value: "12", unit: "รายการ", note: "มูลค่า 15,400 บาท", color: "from-emerald-500/20 to-teal-500/10", border: "border-emerald-500/30" },
+    { title: "รายการจ่ายออกเดือนนี้", value: "28", unit: "รายการ", note: "จ่ายแล้ว 8 หน่วยงาน", color: "from-purple-500/20 to-pink-500/10", border: "border-purple-500/30" },
+    { title: "วัสดุยอดคงเหลือน้อย", value: "3", unit: "รายการ", note: "ควรสั่งซื้อเพิ่ม", color: "from-amber-500/20 to-orange-500/10", border: "border-amber-500/30" },
   ];
 
   return (
