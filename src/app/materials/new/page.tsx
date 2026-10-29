@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createConsumableItem, getCategories, uploadImageAction } from "@/lib/actions";
+import { createConsumableItem, getCategories, getUnits, uploadImageAction } from "@/lib/actions";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { ArrowLeft, Upload } from "lucide-react";
@@ -12,6 +12,7 @@ import Image from "next/image";
 export default function NewMaterialPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<{id:string; name:string}[]>([]);
+  const [units, setUnits] = useState<{id:string; name:string}[]>([]);
   
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -35,6 +36,7 @@ export default function NewMaterialPage() {
 
   useEffect(() => {
     getCategories().then(setCategories);
+    getUnits().then(setUnits);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +59,7 @@ export default function NewMaterialPage() {
         name,
         categoryId,
         specification,
-        unit,
+        unitId: unit,
         unitPrice: unitPrice ? Number(unitPrice) : undefined,
         balanceForward: Number(balanceForward),
         minStock: Number(minStock),
@@ -121,7 +123,10 @@ export default function NewMaterialPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">หน่วยนับ <span className="text-rose-400">*</span></label>
-                <input type="text" required placeholder="เช่น ชิ้น, อัน, กล่อง" value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50" />
+                <select required value={unit} onChange={(e) => setUnit(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50">
+                  <option value="" disabled className="text-black">เลือกหน่วยนับ...</option>
+                  {units.map((u) => (<option key={u.id} value={u.id} className="text-black">{u.name}</option>))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">ราคาต่อหน่วย (บาท)</label>

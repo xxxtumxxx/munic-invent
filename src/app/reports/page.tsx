@@ -23,7 +23,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
           {items.map((item) => (
             <Link key={item.id} href={`/reports?itemId=${item.id}`} className="glass-card p-4 hover:bg-white/5 transition-colors border border-white/10 rounded-xl">
               <div className="font-medium text-white">{item.name}</div>
-              <div className="text-sm text-slate-400">หมวดหมู่: {item.category?.name || "-"} | คงเหลือ: {item.currentStock} {item.unit}</div>
+              <div className="text-sm text-slate-400">หมวดหมู่: {item.category?.name || "-"} | คงเหลือ: {item.currentStock} {item.unitName}</div>
             </Link>
           ))}
         </div>
@@ -68,7 +68,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Promi
             <span className="font-semibold">ขนาด/ลักษณะ:</span> {item.specification || "-"}
           </div>
           <div>
-            <span className="font-semibold">หน่วยนับ:</span> {item.unit}
+            <span className="font-semibold">หน่วยนับ:</span> {item.unitName}
           </div>
           <div>
             <span className="font-semibold">ราคาต่อหน่วย:</span> {item.unitPrice ? `${item.unitPrice.toLocaleString()} บาท` : "-"}

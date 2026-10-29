@@ -42,14 +42,27 @@ model Category {
   @@map("categories")
 }
 
+model Unit {
+  id          String           @id @default(cuid())
+  name        String           @unique // เช่น ชิ้น, เล่ม, รีม, กล่อง
+  
+  items       ConsumableItem[]
+
+  @@map("units")
+}
+
 model ConsumableItem {
   id             String                  @id @default(cuid())
   categoryId     String
   category       Category                @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   
+  unitId         String?
+  unit           Unit?                   @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  
   name           String                  // ชื่อวัสดุ
   specification  String?                 // ขนาด/ลักษณะ/รายละเอียด
-  unit           String                  // หน่วยนับ เช่น ชิ้น, เล่ม, รีม, กล่อง
+  unitName       String?                 // Fallback for existing data / legacy string unit
+
   unitPrice      Decimal?                @db.Decimal(12, 2) // ราคาต่อหน่วย
   balanceForward Int                     @default(0) // ยอดยกมา (จำนวนเริ่มต้น)
   minStock       Int                     @default(0) // จุดสั่งซื้อ/เตือนขั้นต่ำ

@@ -11,6 +11,8 @@ export function Sidebar() {
     { label: "Dashboard / ภาพรวมสต็อก", href: "/" },
     { label: "ทะเบียนคุมวัสดุคงเหลือ", href: "/materials" },
     { label: "รายงานแบบ อปท.-วส.", href: "/reports" },
+    { label: "จัดการหมวดหมู่", href: "/categories" },
+    { label: "จัดการหน่วยนับ", href: "/units" },
   ];
 
   return (

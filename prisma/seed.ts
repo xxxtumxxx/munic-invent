@@ -36,13 +36,13 @@ async function main() {
     create: { name: "วัสดุงานบ้านงานครัว" },
   });
 
-  // 3. Create Consumable Items
+    const unitReam = await prisma.unit.upsert({where:{name:"รีม"},update:{},create:{name:"รีม"}}); const unitPiece = await prisma.unit.upsert({where:{name:"ด้าม"},update:{},create:{name:"ด้าม"}}); const unitBulb = await prisma.unit.upsert({where:{name:"หลอด"},update:{},create:{name:"หลอด"}}); // 3. Create Consumable Items
   const itemPaper = await prisma.consumableItem.create({
     data: {
       categoryId: catOffice.id,
       name: "กระดาษถ่ายเอกสาร A4 (80 แกรม)",
       specification: "Double A บรรจุ 500 แผ่น",
-      unit: "รีม",
+      unitId: unitReam.id,
       unitPrice: 135.00,
       balanceForward: 50,
     },
@@ -53,7 +53,7 @@ async function main() {
       categoryId: catOffice.id,
       name: "ปากกาลูกลื่น 0.5 มม.",
       specification: "สีน้ำเงิน",
-      unit: "ด้าม",
+      unitId: unitPiece.id,
       unitPrice: 5.50,
       balanceForward: 100,
     },
@@ -64,7 +64,7 @@ async function main() {
       categoryId: catElectric.id,
       name: "หลอดไฟ LED 18W",
       specification: "แสงขาง (Daylight)",
-      unit: "หลอด",
+      unitId: unitBulb.id,
       unitPrice: 95.00,
       balanceForward: 20,
     },

@@ -11,12 +11,63 @@ export async function getCategories() {
     orderBy: { name: "asc" },
   });
 }
+export async function createCategory(name: string) {
+  return await prisma.category.create({
+    data: { name },
+  });
+}
+
+export async function updateCategory(id: string, name: string) {
+  return await prisma.category.update({
+    where: { id },
+    data: { name },
+  });
+}
+
+export async function deleteCategory(id: string) {
+  const count = await prisma.consumableItem.count({ where: { categoryId: id } });
+  if (count > 0) {
+    return { success: false, error: "ไม่สามารถลบหมวดหมู่ได้เนื่องจากมีวัสดุในหมวดหมู่นี้" };
+  }
+  await prisma.category.delete({ where: { id } });
+  return { success: true };
+}
+
+// --- UNITS ---
+export async function getUnits() {
+  return await prisma.unit.findMany({
+    orderBy: { name: "asc" },
+  });
+}
+
+export async function createUnit(name: string) {
+  return await prisma.unit.create({
+    data: { name },
+  });
+}
+
+export async function updateUnit(id: string, name: string) {
+  return await prisma.unit.update({
+    where: { id },
+    data: { name },
+  });
+}
+
+export async function deleteUnit(id: string) {
+  const count = await prisma.consumableItem.count({ where: { unitId: id } });
+  if (count > 0) {
+    return { success: false, error: "ไม่สามารถลบหน่วยนับได้เนื่องจากมีวัสดุที่ใช้หน่วยนับนี้" };
+  }
+  await prisma.unit.delete({ where: { id } });
+  return { success: true };
+}
 
 // --- CONSUMABLE ITEMS ---
 export async function getConsumableItems() {
   const items = await prisma.consumableItem.findMany({
     include: {
       category: true,
+      unit: true,
       transactions: true,
     },
     orderBy: { name: "asc" },
@@ -35,6 +86,7 @@ export async function getConsumableItems() {
 
     return {
       ...item,
+      unitName: item.unit?.name || item.unitName || "-",
       unitPrice: item.unitPrice ? Number(item.unitPrice) : null,
       currentStock,
     };
@@ -46,6 +98,7 @@ export async function getConsumableItem(id: string) {
     where: { id },
     include: {
       category: true,
+      unit: true,
       transactions: {
         orderBy: { date: "asc" },
       },
@@ -69,6 +122,7 @@ export async function getConsumableItem(id: string) {
 
   return {
     ...item,
+    unitName: item.unit?.name || item.unitName || "-",
     unitPrice: item.unitPrice ? Number(item.unitPrice) : null,
     currentStock,
     transactions: transactionsWithBalance,
@@ -79,7 +133,8 @@ export async function createConsumableItem(data: {
   name: string;
   categoryId: string;
   specification?: string;
-  unit: string;
+  unitId?: string;
+  unitName?: string;
   unitPrice?: number;
   balanceForward: number;
   minStock: number;
@@ -90,7 +145,8 @@ export async function createConsumableItem(data: {
       name: data.name,
       categoryId: data.categoryId,
       specification: data.specification,
-      unit: data.unit,
+      unitId: data.unitId,
+      unitName: data.unitName,
       unitPrice: data.unitPrice,
       balanceForward: data.balanceForward,
       minStock: data.minStock,
@@ -105,7 +161,8 @@ export async function updateConsumableItem(
     name?: string;
     categoryId?: string;
     specification?: string;
-    unit?: string;
+    unitId?: string;
+    unitName?: string;
     unitPrice?: number;
     balanceForward?: number;
     minStock?: number;

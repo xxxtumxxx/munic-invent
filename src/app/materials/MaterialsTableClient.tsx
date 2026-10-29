@@ -80,7 +80,7 @@ export function MaterialsTableClient({ items, categories }: { items: any[], cate
                       </div>
                     </td>
                     <td className="px-4 py-3">{item.category?.name || "-"}</td>
-                    <td className="px-4 py-3">{item.unit}</td>
+                    <td className="px-4 py-3">{item.unitName}</td>
                     <td className="px-4 py-3 text-right font-medium">
                       {item.currentStock.toLocaleString()}
                     </td>

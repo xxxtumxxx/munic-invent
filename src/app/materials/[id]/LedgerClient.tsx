@@ -111,7 +111,7 @@ export function LedgerClient({ item }: { item: ItemWithTransactions }) {
             </div>
             <div>
               <div className="text-sm text-slate-400">หน่วยนับ</div>
-              <div className="text-lg font-medium text-white">{item.unit}</div>
+              <div className="text-lg font-medium text-white">{item.unitName}</div>
             </div>
             <div>
               <div className="text-sm text-slate-400">ราคาต่อหน่วย</div>
@@ -191,7 +191,7 @@ export function LedgerClient({ item }: { item: ItemWithTransactions }) {
               
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">
-                  จำนวน ({item.unit})
+                  จำนวน ({item.unitName})
                 </label>
                 <input
                   type="number"
